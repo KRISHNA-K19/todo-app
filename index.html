@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supercharged To-Do App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Basic Dark Mode Styles (will be toggled by JS) */
+    .dark-mode {
+      background-color: #1a202c; /* Dark background */
+      color: #e2e8f0; /* Light text */
+    }
+    .dark-mode .bg-white {
+      background-color: #2d3748; /* Darker card background */
+      color: #e2e8f0;
+    }
+    .dark-mode input,
+    .dark-mode select {
+      background-color: #4a5568;
+      color: #e2e8f0;
+      border-color: #4a5568;
+    }
+    .dark-mode input::placeholder {
+      color: #cbd5e0;
+    }
+    .dark-mode .bg-gray-100 {
+      background-color: #4a5568;
+      color: #e2e8f0;
+    }
+    .dark-mode .text-gray-800 {
+      color: #e2e8f0;
+    }
+    .dark-mode .text-gray-500 {
+      color: #a0aec0;
+    }
+    .dark-mode .shadow-2xl {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+    }
+    /* Progress bar animation */
+    #progressBar {
+      transition: width 0.5s ease-in-out;
+    }
+    /* Overdue task styling */
+    .overdue {
+      color: #ef4444 !important; /* Red for overdue text */
+      font-weight: bold;
+    }
+    .dark-mode .overdue {
+      color: #fca5a5 !important;
+    }
+    /* Simple fade-in animation for tasks */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-purple-500 to-indigo-600 min-h-screen flex flex-col items-center justify-center p-6 text-gray-800 transition-colors duration-300">
+  
+  <div class="bg-white shadow-2xl rounded-2xl w-full max-w-lg p-8 space-y-6 transition-colors duration-300">
+    <!-- Header with Quote & Dark Mode Toggle -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 id="quoteBox" class="text-center text-lg font-semibold text-indigo-600 flex-grow pr-2"></h2>
+      <button id="darkModeToggle" class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition-colors duration-300">
+        🌞
+      </button>
+    </div>
+
+    <!-- To-Do Input with Deadline, Priority, Category -->
+    <div class="space-y-4">
+      <input 
+        id="taskInput" 
+        type="text" 
+        placeholder="Enter your task..." 
+        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+      >
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input 
+          id="deadlineInput" 
+          type="datetime-local" 
+          class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+          title="Set deadline"
+        >
+        <select 
+          id="priorityInput" 
+          class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+          title="Set priority"
+        >
+          <option value="low">Low Priority</option>
+          <option value="medium" selected>Medium Priority</option>
+          <option value="high">High Priority</option>
+        </select>
+      </div>
+      <input 
+          id="categoryInput" 
+          type="text" 
+          placeholder="Category (e.g., Work)" 
+          class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+          list="categorySuggestions"
+          title="Enter category"
+        >
+        <datalist id="categorySuggestions"></datalist>
+
+      <button 
+        id="addTaskBtn" 
+        class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition dark:bg-indigo-700 dark:hover:bg-indigo-800">
+        Add Task
+      </button>
+    </div>
+
+    <!-- Pomodoro Timer -->
+    <div class="bg-gray-100 dark:bg-gray-700 p-5 rounded-lg shadow text-center transition-colors duration-300">
+      <h3 class="text-xl font-bold mb-3 text-indigo-700 dark:text-indigo-400">Pomodoro Timer</h3>
+      <div id="timerDisplay" class="text-6xl font-extrabold mb-4 text-gray-900 dark:text-gray-100">25:00</div>
+      <div class="flex flex-wrap justify-center gap-3">
+        <button id="startTimer" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-lg transition">Start</button>
+        <button id="pauseTimer" class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-lg transition">Pause</button>
+        <button id="resetTimer" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg transition">Reset</button>
+        <select id="timerMode" class="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg">
+          <option value="work">Work (25 min)</option>
+          <option value="shortBreak">Short Break (5 min)</option>
+          <option value="longBreak">Long Break (15 min)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Task Filters & Search -->
+    <div class="space-y-4">
+      <input 
+        id="searchInput" 
+        type="text" 
+        placeholder="Search tasks by name or category..." 
+        class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+      >
+      <div class="flex flex-wrap justify-center gap-2">
+        <button data-filter="all" class="filterBtn px-4 py-2 rounded-lg transition text-sm">All</button>
+        <button data-filter="active" class="filterBtn px-4 py-2 rounded-lg transition text-sm">Active</button>
+        <button data-filter="done" class="filterBtn px-4 py-2 rounded-lg transition text-sm">Done</button>
+        <button data-filter="today" class="filterBtn px-4 py-2 rounded-lg transition text-sm">Today</button>
+        <button data-filter="overdue" class="filterBtn px-4 py-2 rounded-lg transition text-sm">Overdue</button>
+      </div>
+    </div>
+
+    <!-- Task List -->
+    <ul id="taskList" class="space-y-3">
+      <!-- Tasks will be rendered here -->
+    </ul>
+
+    <!-- Progress Bar & Task Count -->
+    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors duration-300">
+      <div class="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-3">
+        <div 
+          id="progressBar" 
+          class="bg-indigo-500 h-3 rounded-full" 
+          style="width: 0%;"
+        ></div>
+      </div>
+      <span id="progressText" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">0% completed</span>
+      <span id="taskCount" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">0 tasks</span>
+    </div>
+
+    <!-- Gamification / Achievements -->
+    <div id="achievementMessage" class="mt-4 text-center text-lg font-bold text-green-700 dark:text-green-400 hidden">
+      <!-- Achievement message will appear here -->
+    </div>
+  </div>
+
+  <script src="javascript.js"></script>
+</body>
+</html>
